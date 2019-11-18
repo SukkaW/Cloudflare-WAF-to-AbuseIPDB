@@ -1,0 +1,13 @@
+{
+    "name": "cloudflare-waf-to-abuseipdb",
+    "version": "0.0.0",
+    "description": "",
+    "private": true,
+    "main": "index.js",
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "form-data": "^3.0.0",
+        "node-fetch": "^2.6.0"
+    }
+}
