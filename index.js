@@ -1,6 +1,12 @@
 const fetch = require('node-fetch');
 const FormData = require('form-data');
-const { cfApiKey, cfZoneId, abipdbKey, limit } = require('./_config.js');
+
+const { env } = process;
+
+const cfApiKey = env.CF_API_KEY;
+const cfZoneId = env.CF_ZONE_ID;
+const abipdbKey = env.ABUSEIPDB_KEY;
+const limit = env.CF_EVENTS_LIMIT;
 
 let data = [];
 let stat = 0;
@@ -28,7 +34,7 @@ function reportToAbuseIPDB(iplist) {
         fetch('https://api.abuseipdb.com/api/v2/report', {
             method: 'post',
             body: form,
-            headers: { 'Key': abipdbKey, 'Accept': 'application/json' , ...form.getHeaders() }
+            headers: { 'Key': abipdbKey, 'Accept': 'application/json', ...form.getHeaders() }
         })
             .then(res => res.json())
             .then(({ data }) => { console.log(`${data.ipAddress} has abuse confidence score of ${data.abuseConfidenceScore}`); })
@@ -43,7 +49,7 @@ function reportToAbuseIPDB(iplist) {
 (function queryCfWAF(cfApiKey, cfZoneId, cursor) {
     if (stat === 0) console.log(`Querying Firewall Events from Cloudflare API V4...\n`);
 
-    cursor = !cursor ? '' : 'cursor=' + cursor;
+    cursor = !cursor ? '' : `cursor=${cursor}`;
     fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/security/events?limit=1000`, {
         headers: {
             'Authorization': `Bearer ${cfApiKey}`,
