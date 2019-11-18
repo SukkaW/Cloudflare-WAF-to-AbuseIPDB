@@ -32,7 +32,7 @@ function reportToAbuseIPDB(iplist) {
         })
             .then(res => res.json())
             .then(({ data }) => { console.log(`${data.ipAddress} has abuse confidence score of ${data.abuseConfidenceScore}`); })
-            .catch((err) => { console.error(err); });
+            .catch((err) => { console.error('The IP has already been reported or AbuseIPDB\'s Rate Limit has been met'); });
     }
 
     for (const ip of iplist) {
