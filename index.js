@@ -6,7 +6,11 @@ const { env } = process;
 const cfApiKey = env.CF_API_KEY;
 const cfZoneId = env.CF_ZONE_ID;
 const abipdbKey = env.ABUSEIPDB_KEY;
-const limit = env.CF_EVENTS_LIMIT;
+
+const now = new Date().getTime();
+
+const since = new Date(now - 86400 * 1000).toISOString();
+const until = new Date(now).toISOString();
 
 let data = [];
 let stat = 0;
@@ -50,7 +54,7 @@ function reportToAbuseIPDB(iplist) {
     if (stat === 0) console.log(`Querying Firewall Events from Cloudflare API V4...\n`);
 
     cursor = !cursor ? '' : `cursor=${cursor}`;
-    fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/security/events?limit=1000`, {
+    fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/security/events?limit=1000&since=${since}&until=${until}&${cursor}`, {
         headers: {
             'Authorization': `Bearer ${cfApiKey}`,
             'Content-Type': 'application/json'
@@ -58,16 +62,18 @@ function reportToAbuseIPDB(iplist) {
     }).then(res => res.json()).then(({ result, result_info }) => {
         data = [...data, ...result];
         stat = data.length;
-        return result_info;
-    }).then(({ cursors }) => {
-        if (stat > limit || cursors.before === cursors.after) {
+
+        return [result_info, result[result.length - 1].occurred_at];
+    }).then(([{ cursors }, occured_at]) => {
+        const toEnd = new Date(occured_at).getTime() - new Date(since).getTime();
+        if (toEnd < 0) {
             // To the End
             const iplist = sortIP(data);
             console.log(`----------------------------------------\n${iplist.length} IPs has been quried from Cloudflare API. Reporting to AbuseIPDB...`)
             reportToAbuseIPDB(iplist);
         } else {
             console.log(`${stat} events already queried from Cloudflare API.`)
-            queryCfWAF(cfApiKey, cfZoneId, cursors.after);
+            queryCfWAF(cfApiKey, cfZoneId, cursors.before);
         }
     });
 })(cfApiKey, cfZoneId);
