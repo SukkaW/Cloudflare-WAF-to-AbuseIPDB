@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = require('node-fetch-retry');
 const FormData = require('form-data');
 
 const { env } = process;
@@ -16,6 +16,14 @@ let data = {};
 let stat = 0;
 
 function reportToAbuseIPDB(iplist) {
+    function sleep(time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
+
+    function randomInt(min, max) {
+        return Math.round(Math.random() * (max - min)) + min;
+    }
+
     function report(ip) {
         const ipInfo = iplist[ip];
         const form = new FormData();
@@ -35,7 +43,9 @@ function reportToAbuseIPDB(iplist) {
     }
 
     for (const ip of Object.keys(iplist)) {
-        report(ip);
+        sleep(randomInt(500, 60500)).then(() => {
+            report(ip);
+        })
     }
 }
 
