@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = require('node-fetch-retry');
 const FormData = require('form-data');
 
 const { env } = process;
@@ -16,6 +16,18 @@ let data = {};
 let stat = 0;
 
 function reportToAbuseIPDB(iplist) {
+    function sleep(duration) {
+        return (...args) => new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(...args);
+            }, duration)
+        });
+    }
+
+    function randomInt(min, max) {
+        return Math.round(Math.random() * (max - min)) + min;
+    }
+
     function report(ip) {
         const ipInfo = iplist[ip];
         const form = new FormData();
@@ -31,6 +43,7 @@ function reportToAbuseIPDB(iplist) {
         })
             .then(res => res.json())
             .then(({ data }) => { console.log(`${data.ipAddress} has abuse confidence score of ${data.abuseConfidenceScore}`); })
+            .then(sleep(randomInt(100, 2500)))
             .catch((err) => { console.error('The IP has already been reported or AbuseIPDB\'s Rate Limit has been met'); });
     }
 
