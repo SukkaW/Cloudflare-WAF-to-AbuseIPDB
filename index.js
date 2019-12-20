@@ -43,7 +43,7 @@ function reportToAbuseIPDB(iplist) {
     }
 
     for (const ip of Object.keys(iplist)) {
-        sleep(randomInt(500, 60500)).then(() => {
+        sleep(randomInt(500, 120500)).then(() => {
             report(ip);
         })
     }
